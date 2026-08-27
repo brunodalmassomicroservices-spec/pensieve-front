@@ -1,9 +1,9 @@
+import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-// 🎨 Centralização de Cores
 const COLORS = {
   background: '#17231d',
   brand: '#7ed7ae',
@@ -14,10 +14,6 @@ const COLORS = {
 
 export default function TabLayout() {
   const userInitial = 'A';
-
-  const handleOpenAccount = () => {
-    router.push('/conta'); // Redireciona para a rota da conta
-  };
 
   return (
     <Tabs
@@ -37,11 +33,11 @@ export default function TabLayout() {
           backgroundColor: COLORS.background,
           borderTopColor: '#304339',
         },
-        // Componente do avatar posicionado à direita do cabeçalho
+        // Avatar fixo em todas as telas
         headerRight: () => (
           <TouchableOpacity
             style={styles.profile}
-            onPress={handleOpenAccount}
+            onPress={() => router.push('/conta')}
             activeOpacity={0.7}
             accessibilityLabel="Perfil do usuário"
           >
@@ -53,10 +49,10 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
         options={{
-          title: 'Revisar',
+          title: 'revisasdfasdf',
           tabBarLabel: 'Revisar',
+          headerLeft: () => null, // Oculta o botão de voltar nesta tela
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'today' : 'today-outline'}
@@ -67,11 +63,21 @@ export default function TabLayout() {
         }}
       />
 
+      {/* Tela Novo Gatilho: COM a seta de voltar */}
       <Tabs.Screen
         name="novoGatilho"
         options={{
           title: 'Novo Gatilho',
           tabBarLabel: 'Novo Gatilho',
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.navigate('/(tabs)/revisar')}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <AntDesign name="arrowleft" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'add-circle' : 'add-circle-outline'}
@@ -82,11 +88,21 @@ export default function TabLayout() {
         }}
       />
 
+      {/* Tela Sobre: COM a seta de voltar */}
       <Tabs.Screen
         name="sobre"
         options={{
           title: 'Sobre',
           tabBarLabel: 'Sobre',
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.navigate('/(tabs)/revisar')}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <AntDesign name="arrowleft" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+          ),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'help-circle' : 'help-circle-outline'}
@@ -101,17 +117,23 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    marginLeft: 18,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   profile: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: COLORS.brandSoft,
+    backgroundColor: '#245a40',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 18,
   },
   profileText: {
-    color: COLORS.brand,
+    color: '#7ed7ae',
     fontSize: 14,
     fontWeight: '600',
   },
