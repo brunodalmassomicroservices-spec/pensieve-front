@@ -9,7 +9,6 @@ const COLORS = {
   textMuted: '#a4c6b6',
   brand: '#7ed7ae',
   brandSoft: '#245a40',
-  brandText: '#10251a',
 };
 
 export default function AboutScreen({ onBack }: { onBack?: () => void }) {
@@ -20,12 +19,9 @@ export default function AboutScreen({ onBack }: { onBack?: () => void }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Cabeçalho */}
-        <Text style={styles.title}>Sobre o Pensieve (Penseira)</Text>
-
         {/* Introdução */}
         <Text style={styles.paragraph}>
-          O Pensieve nasce de uma premissa simples: a sua mente foi feita para ter ideias, não para tentar segurar informações à força. Inspirado na Penseira (Pensieve), o lendário artefato mágico usado para esvaziar a mente e examinar pensamentos com clareza. Nosso aplicativo é a sua <Text style={styles.bold}>Digital Pensieve</Text>: um lugar seguro para armazenar, organizar e consolidar tudo o que você aprende.
+          O Penseira nasce de uma premissa clara: a sua memória é um músculo que pode ser treinado e dominado. Inspirado na Penseira, o lendário artefato usado para examinar e organizar pensamentos com clareza. Nosso aplicativo é a sua Digital Pensieve: uma ferramenta projetada para fortalecer sua retenção, reativar lembranças com velocidade e consolidar tudo o que você aprende no longo prazo.
         </Text>
 
         {/* Seção 1: A Ciência por Trás da Magia */}

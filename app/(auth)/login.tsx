@@ -4,20 +4,22 @@ import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
 const COLORS = {
   background: '#17231d',
   surface: '#17231d',
   border: '#304339',
+  borderActive: '#7ed7ae',
   textPrimary: '#e8f4ed',
   textMuted: '#a4c6b6',
-  placeholder: '#527265',
+  placeholder: '#6c8e7e',
   brand: '#7ed7ae',
   brandText: '#10251a',
 };
@@ -25,16 +27,17 @@ const COLORS = {
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Estado para controlar visibilidade da senha
-  
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeInput, setActiveInput] = useState<string | null>(null);
+
   const router = useRouter();
 
   function handlerHome() {
-    router.navigate("/(tabs)/revisar");
+    router.navigate('/(tabs)/revisar');
   }
 
   function handlerSingup() {
-    router.navigate("/(auth)/signup");
+    router.navigate('/(auth)/signup');
   }
 
   return (
@@ -42,82 +45,111 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
-        <Text style={styles.brand}>Acesse sua Digital Pensieve</Text>
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="seuemail@exemplo.com"
-            placeholderTextColor={COLORS.placeholder}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Cabeçalho */}
+        <View style={styles.header}>
+          <Text style={styles.brandTitle}>Acesse sua Digital Pensieve</Text>
         </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Senha</Text>
-          <View style={styles.passwordContainer}>
+        {/* Formulário */}
+        <View style={styles.form}>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>E-mail</Text>
             <TextInput
-              style={styles.passwordInput}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Sua senha secreta"
+              style={[
+                styles.input,
+                activeInput === 'email' && styles.inputFocused,
+              ]}
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setActiveInput('email')}
+              onBlur={() => setActiveInput(null)}
+              placeholder="seuemail@exemplo.com"
               placeholderTextColor={COLORS.placeholder}
-              secureTextEntry={!showPassword} // Oculta/revela conforme o estado
+              keyboardType="email-address"
+              autoCapitalize="none"
+              returnKeyType="next"
             />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-              activeOpacity={0.7}
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Senha</Text>
+            <View
+              style={[
+                styles.passwordContainer,
+                activeInput === 'password' && styles.inputFocused,
+              ]}
             >
-              <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                size={22}
-                color={COLORS.textMuted}
+              <TextInput
+                style={styles.passwordInput}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setActiveInput('password')}
+                onBlur={() => setActiveInput(null)}
+                placeholder="Sua senha secreta"
+                placeholderTextColor={COLORS.placeholder}
+                secureTextEntry={!showPassword}
+                returnKeyType="done"
               />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={22}
+                  color={COLORS.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.forgotPassword} activeOpacity={0.7}>
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
-   
-      <TouchableOpacity
-        style={styles.primaryButton}
-        activeOpacity={0.8}
-        onPress={handlerHome}>
-        <Text style={styles.primaryButtonText}>Entrar</Text>
-      </TouchableOpacity>
-      
-      <View style={styles.containerSeparator}>
-        <View style={styles.separator} />
-        <Text style={styles.containerSeparatorText}>ou continuar com</Text>
-        <View style={styles.separator} />
-      </View>
 
-      {/* Botões de Login Social */}
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-          <Ionicons name="logo-google" size={28} color={COLORS.textPrimary} />
+        {/* Botão Entrar */}
+        <TouchableOpacity
+          style={styles.primaryButton}
+          activeOpacity={0.8}
+          onPress={handlerHome}
+        >
+          <Text style={styles.primaryButtonText}>Entrar</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
-          <Ionicons name="logo-apple" size={28} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-      </View>
 
-      {/* Rodapé / Link para Cadastro */}
-      <View style={styles.signupFooter}>
-        <Text style={styles.footerText}>Não possui conta?</Text>
-        
-        <TouchableOpacity onPress={handlerSingup} activeOpacity={0.7}>
-          <Text style={styles.footerButtonText}> Cadastre-se!</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Separador */}
+        <View style={styles.containerSeparator}>
+          <View style={styles.separator} />
+          <Text style={styles.containerSeparatorText}>ou continuar com</Text>
+          <View style={styles.separator} />
+        </View>
+
+        {/* Botões Sociais */}
+        <View style={styles.socialContainer}>
+          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+            <Ionicons name="logo-google" size={26} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+            <Ionicons name="logo-apple" size={26} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Rodapé Aproximado com Espaçamento Correto */}
+        <View style={styles.signupFooter}>
+          <Text style={styles.footerText}>Não possui conta?</Text>
+          <TouchableOpacity onPress={handlerSingup} activeOpacity={0.7}>
+            <Text style={styles.footerButtonText}> Cadastre-se!</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -126,33 +158,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    alignItems: 'center',
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 24,
+    alignItems: 'center',
   },
   header: {
     alignSelf: 'flex-start',
-    marginTop: 40,
+    marginBottom: 28,
   },
-  brand: {
-    fontSize: 28,
+  brandTitle: {
+    fontSize: 32,
     fontWeight: 'bold',
     letterSpacing: -1,
     color: COLORS.textPrimary,
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  brandSubtitle: {
+    fontSize: 16,
+    color: COLORS.textMuted,
   },
   form: {
-    width: "100%",
-    marginTop: 40,
-    alignItems: 'center',
-    gap: 18,   
+    width: '100%',
+    gap: 16,
   },
   formGroup: {
     width: '100%',
   },
   label: {
-    width: '100%',
     color: COLORS.textPrimary,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 7,
   },
@@ -164,10 +204,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: 12,
     fontSize: 15,
-    paddingHorizontal: 12,
-    height: 49,
+    paddingHorizontal: 14,
+    height: 48,
   },
-  /* Campo de Senha com Ícone Interno */
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -176,28 +215,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
-    height: 49,
+    height: 48,
   },
   passwordInput: {
     flex: 1,
     color: COLORS.textPrimary,
     fontSize: 15,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     height: '100%',
   },
+  inputFocused: {
+    borderColor: COLORS.borderActive,
+  },
   eyeIcon: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+  },
+  forgotPasswordText: {
+    color: COLORS.brand,
+    fontSize: 13,
+    fontWeight: '600',
   },
   primaryButton: {
     backgroundColor: COLORS.brand,
     width: '100%',
-    height: 49,
+    height: 48,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 32,
+    marginTop: 20,
   },
   primaryButtonText: {
     color: COLORS.brandText,
@@ -205,30 +256,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   containerSeparator: {
-    width: "100%",
-    marginTop: 36,
+    width: '100%',
+    marginTop: 28,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  }, 
+  },
   separator: {
     flex: 1,
     height: 2,
     backgroundColor: COLORS.border,
-  }, 
+  },
   containerSeparatorText: {
     color: COLORS.textMuted,
-    fontSize: 14,
-    fontWeight: '400',
+    fontSize: 13,
   },
   socialContainer: {
-    marginTop: 24,
+    marginTop: 18,
     flexDirection: 'row',
     gap: 16,
   },
   socialButton: {
     width: 80,
-    height: 52,
+    height: 48,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
@@ -236,20 +286,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
   },
+  /* Ajuste no rodapé de cadastro: margem superior reduzida para aproximar do conteúdo */
   signupFooter: {
-    marginTop: 'auto',
-    marginBottom: 32,
+    marginTop: 28,
+    marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
   footerText: {
     color: COLORS.textMuted,
-    fontSize: 15,
-    fontWeight: '400',
+    fontSize: 14,
   },
   footerButtonText: {
     color: COLORS.brand,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-  }
+  },
 });

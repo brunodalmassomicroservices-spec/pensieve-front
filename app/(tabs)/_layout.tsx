@@ -26,14 +26,13 @@ export default function TabLayout() {
         headerShadowVisible: false,
         headerTintColor: COLORS.textPrimary,
         headerTitleStyle: {
-          fontWeight: '650',
-          fontSize: 22,
+          fontWeight: '600',
+          fontSize: 20,
         },
         tabBarStyle: {
           backgroundColor: COLORS.background,
           borderTopColor: '#304339',
         },
-        // Avatar fixo em todas as telas
         headerRight: () => (
           <TouchableOpacity
             style={styles.profile}
@@ -49,22 +48,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        options={{
-          title: 'revisasdfasdf',
-          tabBarLabel: 'Revisar',
-          headerLeft: () => null, // Oculta o botão de voltar nesta tela
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'today' : 'today-outline'}
-              color={color}
-              size={24}
-            />
-          ),
-        }}
-      />
-
-      {/* Tela Novo Gatilho: COM a seta de voltar */}
-      <Tabs.Screen
         name="novoGatilho"
         options={{
           title: 'Novo Gatilho',
@@ -75,7 +58,7 @@ export default function TabLayout() {
               style={styles.backButton}
               activeOpacity={0.7}
             >
-              <AntDesign name="arrowleft" size={24} color={COLORS.textPrimary} />
+              <AntDesign name="arrow-left" size={20} color={COLORS.textPrimary} />
             </TouchableOpacity>
           ),
           tabBarIcon: ({ color, focused }) => (
@@ -88,11 +71,10 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Tela Sobre: COM a seta de voltar */}
       <Tabs.Screen
         name="sobre"
         options={{
-          title: 'Sobre',
+          title: 'Sobre o Pensieve',
           tabBarLabel: 'Sobre',
           headerLeft: () => (
             <TouchableOpacity
@@ -100,7 +82,7 @@ export default function TabLayout() {
               style={styles.backButton}
               activeOpacity={0.7}
             >
-              <AntDesign name="arrowleft" size={24} color={COLORS.textPrimary} />
+              <AntDesign name="arrow-left" size={20} color={COLORS.textPrimary} />
             </TouchableOpacity>
           ),
           tabBarIcon: ({ color, focused }) => (
@@ -110,6 +92,16 @@ export default function TabLayout() {
               size={24}
             />
           ),
+        }}
+      />
+
+      {/* 3. Tela de Revisão: Mantida no roteador, mas OCULTA do Tab Bar */}
+      <Tabs.Screen
+        name="revisar"
+        options={{
+          title: 'Revisar',
+          href: null, // <-- Remove o botão do Tab Bar inferior
+          headerLeft: () => null,
         }}
       />
     </Tabs>
@@ -127,13 +119,13 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#245a40',
+    backgroundColor: COLORS.brandSoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 18,
   },
   profileText: {
-    color: '#7ed7ae',
+    color: COLORS.brand,
     fontSize: 14,
     fontWeight: '600',
   },

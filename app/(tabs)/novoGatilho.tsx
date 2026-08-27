@@ -1,60 +1,82 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-// 🎨 Centralização de Cores (Tema Escuro)
 const COLORS = {
   background: '#17231d',
   surface: '#17231d',
   border: '#304339',
+  borderActive: '#7ed7ae',
   textPrimary: '#e8f4ed',
   textMuted: '#a4c6b6',
-  placeholder: '#527265',
+  placeholder: '#6c8e7e',
   brand: '#7ed7ae',
   brandText: '#10251a',
+  badgeBg: '#245a40',
 };
 
-interface NewTriggerScreenProps {
-  onSave?: (data: { subject: string; title: string; notes: string }) => void;
-}
-
-export default function NewTriggerScreen({ onSave }: NewTriggerScreenProps) {
+export default function NovoGatilhoScreen() {
   const [subject, setSubject] = useState('');
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-
-  const handleSubmit = () => {
-    if (onSave) {
-      onSave({ subject, title, notes });
-    }
-  };
+  const [activeInput, setActiveInput] = useState<string | null>(null);
 
   return (
-    <View style={styles.container}>
-
-        {/* Cabeçalho */}
-        <Text style={styles.eyebrow}>Dia 0</Text>
-        <Text style={styles.title}>Novo gatilho</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Badge de Estágio do Aprendizado */}
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>DIA 0 • SÍNTESE INICIAL</Text>
+        </View>
 
         {/* Formulário */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Matéria</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              activeInput === 'subject' && styles.inputFocused,
+            ]}
             value={subject}
             onChangeText={setSubject}
+            onFocus={() => setActiveInput('subject')}
+            onBlur={() => setActiveInput(null)}
             placeholder="Ex.: Arquitetura de sistemas"
             placeholderTextColor={COLORS.placeholder}
+            returnKeyType="next"
           />
         </View>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Palavra-gatilho</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              activeInput === 'title' && styles.inputFocused,
+            ]}
             value={title}
             onChangeText={setTitle}
+            onFocus={() => setActiveInput('title')}
+            onBlur={() => setActiveInput(null)}
             placeholder="Ex.: Idempotência"
             placeholderTextColor={COLORS.placeholder}
+            returnKeyType="next"
           />
           <Text style={styles.fieldHelp}>
             Use um termo curto que faça você recuperar o conceito.
@@ -64,9 +86,15 @@ export default function NewTriggerScreen({ onSave }: NewTriggerScreenProps) {
         <View style={styles.formGroup}>
           <Text style={styles.label}>Anotação</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[
+              styles.input,
+              styles.textArea,
+              activeInput === 'notes' && styles.inputFocused,
+            ]}
             value={notes}
             onChangeText={setNotes}
+            onFocus={() => setActiveInput('notes')}
+            onBlur={() => setActiveInput(null)}
             placeholder="Registre sua síntese do conceito."
             placeholderTextColor={COLORS.placeholder}
             multiline
@@ -75,18 +103,12 @@ export default function NewTriggerScreen({ onSave }: NewTriggerScreenProps) {
           />
         </View>
 
-
-      {/* Botão Fixo no Rodapé */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.primaryButton}
-          activeOpacity={0.8}
-          onPress={handleSubmit}
-        >
+        {/* Botão posicionado logo abaixo do formulário */}
+        <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
           <Text style={styles.primaryButtonText}>Salvar e agendar revisões</Text>
         </TouchableOpacity>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -94,20 +116,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: 16,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 12,
     paddingHorizontal: 18,
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
-  eyebrow: {
-    color: COLORS.textMuted,
-    fontSize: 13,
-    marginBottom: 4,
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.badgeBg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 20,
   },
-  title: {
-    color: COLORS.textPrimary,
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 24,
+  badgeText: {
+    color: COLORS.brand,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   formGroup: {
     marginBottom: 18,
@@ -115,12 +145,13 @@ const styles = StyleSheet.create({
   label: {
     color: COLORS.textPrimary,
     fontSize: 14,
-    fontWeight: '650',
+    fontWeight: '600',
     marginBottom: 7,
   },
   input: {
     width: '100%',
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     color: COLORS.textPrimary,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
@@ -128,26 +159,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 15,
   },
+  inputFocused: {
+    borderColor: COLORS.borderActive,
+  },
   textArea: {
-    height: 100,
+    height: 110,
   },
   fieldHelp: {
-    marginTop: 7,
+    marginTop: 6,
     color: COLORS.textMuted,
     fontSize: 12,
     lineHeight: 16,
-  },
-  footer: {
-    paddingHorizontal: 18,
-    paddingBottom: 24,
-    paddingTop: 12,
-    backgroundColor: COLORS.background,
   },
   primaryButton: {
     backgroundColor: COLORS.brand,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
+    marginTop: 12,
   },
   primaryButtonText: {
     color: COLORS.brandText,

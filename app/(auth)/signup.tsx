@@ -1,6 +1,5 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -13,26 +12,27 @@ import {
   View,
 } from 'react-native';
 
-// 🎨 Centralização de Cores (Tema Escuro)
 const COLORS = {
   background: '#17231d',
   surface: '#17231d',
   border: '#304339',
+  borderActive: '#7ed7ae',
   textPrimary: '#e8f4ed',
   textMuted: '#a4c6b6',
-  placeholder: '#527265',
+  placeholder: '#6c8e7e',
   brand: '#7ed7ae',
   brandText: '#10251a',
-  brandSoft: '#245a40',
 };
 
-export default function RegisterScreen() {
+export default function SignupScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Estado para controlar visibilidade da senha
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeInput, setActiveInput] = useState<string | null>(null);
 
-  // Função para gerar senha forte aleatória
+  const router = useRouter();
+
   const generateStrongPassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let newPassword = '';
@@ -40,11 +40,10 @@ export default function RegisterScreen() {
       newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setPassword(newPassword);
+    setShowPassword(true);
   };
 
   const handleRegister = () => {
-    // Insira a lógica de cadastro no seu backend/serviço aqui
-    // Exemplo de redirecionamento após cadastro com sucesso:
     router.replace('/(tabs)/revisar');
   };
 
@@ -57,15 +56,11 @@ export default function RegisterScreen() {
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Cabeçalho */}
+        {/* Cabeçalho alinhado com a marca */}
         <View style={styles.header}>
-          <View style={styles.title}>
-            <AntDesign name="arrow-left" size={24} color="#e8f4ed" onPress={() => router.push('/(auth)/login')}/>
-            <Text style={styles.brand}>Pensieve</Text>
-          </View>
-          
-          <Text style={styles.subtitle}>Crie sua conta na Digital Pensieve</Text>
+          <Text style={styles.brandTitle}>Crie sua conta na Digital Pensieve</Text>
         </View>
 
         {/* Formulário */}
@@ -73,26 +68,37 @@ export default function RegisterScreen() {
           <View style={styles.formGroup}>
             <Text style={styles.label}>Nome completo</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                activeInput === 'fullName' && styles.inputFocused,
+              ]}
               value={fullName}
               onChangeText={setFullName}
-              placeholder="Ex.: Nome completo"
+              onFocus={() => setActiveInput('fullName')}
+              onBlur={() => setActiveInput(null)}
+              placeholder="Ex.: Kryon Zex"
               placeholderTextColor={COLORS.placeholder}
               autoCapitalize="words"
+              returnKeyType="next"
             />
           </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>E-mail</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                activeInput === 'email' && styles.inputFocused,
+              ]}
               value={email}
               onChangeText={setEmail}
+              onFocus={() => setActiveInput('email')}
+              onBlur={() => setActiveInput(null)}
               placeholder="seuemail@exemplo.com"
               placeholderTextColor={COLORS.placeholder}
               keyboardType="email-address"
               autoCapitalize="none"
-              autoCorrect={false}
+              returnKeyType="next"
             />
           </View>
 
@@ -109,14 +115,22 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.passwordContainer}>
+            <View
+              style={[
+                styles.passwordContainer,
+                activeInput === 'password' && styles.inputFocused,
+              ]}
+            >
               <TextInput
                 style={styles.passwordInput}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Digite uma senha"
+                onFocus={() => setActiveInput('password')}
+                onBlur={() => setActiveInput(null)}
+                placeholder="Digite ou sugira uma senha"
                 placeholderTextColor={COLORS.placeholder}
-                secureTextEntry={!showPassword} // Oculta/revela conforme o estado
+                secureTextEntry={!showPassword}
+                returnKeyType="done"
               />
               <TouchableOpacity
                 style={styles.eyeIcon}
@@ -129,31 +143,29 @@ export default function RegisterScreen() {
                   color={COLORS.textMuted}
                 />
               </TouchableOpacity>
-              
             </View>
-
           </View>
         </View>
+
+        {/* Ações agrupadas com o formulário */}
+        <View style={styles.actionGroup}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            activeOpacity={0.8}
+            onPress={handleRegister}
+          >
+            <Text style={styles.primaryButtonText}>Cadastrar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            activeOpacity={0.7}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.secondaryButtonText}>Já tenho uma conta</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-
-      {/* Ações / Rodapé Fixo */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.primaryButton}
-          activeOpacity={0.8}
-          onPress={handleRegister}
-        >
-          <Text style={styles.primaryButtonText}>Cadastrar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          activeOpacity={0.7}
-          onPress={() => router.push('/(auth)/login')}
-        >
-          <Text style={styles.secondaryButtonText}>Já tenho uma conta</Text>
-        </TouchableOpacity>
-      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -167,33 +179,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    marginTop: 40,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
+    paddingTop: 32,
     paddingBottom: 24,
   },
   header: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
-  title: {
-    flexDirection: "row",
-    width: '100%',
-    gap: 18,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  brand: {
-    fontSize: 28,
+  brandTitle: {
+    fontSize: 32,
     fontWeight: 'bold',
     letterSpacing: -1,
     color: COLORS.textPrimary,
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  subtitle: {
-    color: COLORS.textMuted,
+  brandSubtitle: {
     fontSize: 15,
+    color: COLORS.textMuted,
   },
   form: {
-    gap: 18,
+    width: '100%',
+    gap: 16,
   },
   formGroup: {
     width: '100%',
@@ -202,7 +208,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 7,
   },
   label: {
     color: COLORS.textPrimary,
@@ -223,26 +228,51 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    padding: 12,
     color: COLORS.textPrimary,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
     fontSize: 15,
+    paddingHorizontal: 14,
+    height: 48,
   },
-  footer: {
-    paddingHorizontal: 18,
-    paddingBottom: 24,
-    paddingTop: 12,
-    backgroundColor: COLORS.background,
-    gap: 10,
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    height: 48,
+  },
+  passwordInput: {
+    flex: 1,
+    color: COLORS.textPrimary,
+    fontSize: 15,
+    paddingHorizontal: 14,
+    height: '100%',
+  },
+  inputFocused: {
+    borderColor: COLORS.borderActive,
+  },
+  eyeIcon: {
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionGroup: {
+    marginTop: 28,
+    gap: 12,
   },
   primaryButton: {
     backgroundColor: COLORS.brand,
+    width: '100%',
+    height: 48,
     borderRadius: 14,
-    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: COLORS.brandText,
@@ -253,36 +283,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: COLORS.border,
+    width: '100%',
+    height: 48,
     borderRadius: 14,
-    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   secondaryButtonText: {
     color: COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  /* Campo de Senha com Ícone Interno */
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    height: 49,
-  },
-  passwordInput: {
-    flex: 1,
-    color: COLORS.textPrimary,
     fontSize: 15,
-    paddingHorizontal: 12,
-    height: '100%',
-  },
-  eyeIcon: {
-    paddingHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontWeight: '600',
   },
 });
