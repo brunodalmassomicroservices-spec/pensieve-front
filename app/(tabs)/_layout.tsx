@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 const COLORS = {
   background: '#17231d',
@@ -13,7 +14,8 @@ const COLORS = {
 };
 
 export default function TabLayout() {
-  const userInitial = 'A';
+  const { user, logout, updateUser } = useAuth();
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
 
   return (
     <Tabs
@@ -103,6 +105,27 @@ export default function TabLayout() {
           href: null, // <-- Remove o botão do Tab Bar inferior
           headerLeft: () => null,
         }}
+      />
+
+      {/* 4. Tela da Conta: Mantida no roteador, mas OCULTA do Tab Bar */}
+      <Tabs.Screen
+          name="conta"
+          options={{
+            headerTitle: 'Minha Conta',
+            headerStyle: { backgroundColor: '#17231d' },
+            headerTintColor: '#e8f4ed',
+            headerShadowVisible: false,
+            href: null, // <-- Remove o botão do Tab Bar inferior
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={() => router.navigate('/(tabs)/revisar')}
+                style={styles.backButton}
+                activeOpacity={0.7}
+              >
+                <AntDesign name="arrow-left" size={20} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            ),
+          }}
       />
     </Tabs>
   );

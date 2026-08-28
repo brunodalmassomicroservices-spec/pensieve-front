@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 const COLORS = {
   background: '#17231d',
@@ -28,13 +30,29 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeInput, setActiveInput] = useState<string | null>(null);
 
   const router = useRouter();
+  const { login } = useAuth();
 
-  function handlerHome() {
-    router.navigate('/(tabs)/revisar');
-  }
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Atenção', 'Preencha o e-mail e a senha.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await login(email, password);
+      // O redirecionamento é automático pelo RootLayout assim que o token é salvo
+    } catch (error: any) {
+      const message = error?.response?.data?.message || 'E-mail ou senha inválidos.';
+      Alert.alert('Erro de Autenticação', message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   function handlerSingup() {
     router.navigate('/(auth)/signup');
@@ -119,7 +137,8 @@ export default function LoginScreen() {
         <TouchableOpacity
           style={styles.primaryButton}
           activeOpacity={0.8}
-          onPress={handlerHome}
+          onPress={handleLogin}
+          disabled={isSubmitting}
         >
           <Text style={styles.primaryButtonText}>Entrar</Text>
         </TouchableOpacity>
