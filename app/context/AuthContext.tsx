@@ -70,14 +70,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  // Adicione esta função ao contexto em context/AuthContext.tsx
-  const updateUser = async (name: string, pass: String) => {
-
-    if (user) {
-      const updatedUserData = { ...user, name };
-      await SecureStore.setItemAsync('user_data', JSON.stringify(updatedUserData));
-      setUser(updatedUserData);
+  const updateUser = async (name: string, pass: string) => {
+    if (!user?.userId) {
+      throw new Error('Usuário não autenticado.');
     }
+
+    const payload = {
+      name,
+      password: pass,
+    };
+
+    const response = await api.put(`/users/${user.userId}`, payload);
+    // Monta o objeto com os dados atualizados
+    const updatedUserData: UserData = {
+      ...user,
+      name: response.data.name || name,
+    };
+
+    // Persiste a informação atualizada no dispositivo
+    await SecureStore.setItemAsync('user_data', JSON.stringify(updatedUserData));
+
+    // Atualiza o estado da aplicação
+    setUser(updatedUserData);
+    return response.data;
   };
 
   return (

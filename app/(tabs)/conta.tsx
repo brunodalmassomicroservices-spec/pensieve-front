@@ -13,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
 
 const COLORS = {
   background: '#17231d',
@@ -53,12 +52,32 @@ export default function AccountScreen() {
 
     try {
       setIsUpdatingProfile(true);
-      await api.put('/users/profile', { name });
       await updateUser(name, currentPassword);
+      
       Alert.alert('Sucesso', 'Nome atualizado com sucesso!');
     } catch (error: any) {
       const message = error?.response?.data?.message || 'Erro ao atualizar nome.';
       Alert.alert('Erro', message);
+
+      // Exibe o erro no terminal/console do React Native
+      console.error("ERRO COMPLETO:", JSON.stringify(error, null, 2));
+
+      // Se for um erro do Axios, o servidor retornou um status (4xx/5xx)
+      if (error.response) {
+        console.log("Status:", error.response.status);
+        console.log("Dados da resposta:", error.response.data);
+        Alert.alert("Erro no Servidor", JSON.stringify(error.response.data));
+      } 
+      // A requisição foi feita mas não houve resposta (ex: erro de rede/IP incorreto)
+      else if (error.request) {
+        console.log("Sem resposta do servidor. Verifique o IP/URL.");
+        Alert.alert("Erro de Rede", "Não foi possível conectar ao servidor.");
+      } 
+      // Erro na configuração do código
+      else {
+        console.log("Mensagem de erro:", error.message);
+        Alert.alert("Erro", error.message);
+      }
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -72,19 +91,35 @@ export default function AccountScreen() {
     }
 
     try {
-      setIsUpdatingPassword(true);
-      await api.put('/users/password', {
-        currentPassword,
-        newPassword,
-      });
+      setIsUpdatingProfile(true);
+      await updateUser(name, currentPassword);
+      
       Alert.alert('Sucesso', 'Senha alterada com sucesso!');
-      setCurrentPassword('');
-      setNewPassword('');
     } catch (error: any) {
-      const message = error?.response?.data?.message || 'Erro ao alterar a senha.';
+      const message = error?.response?.data?.message || 'Erro ao atualizar senha.';
       Alert.alert('Erro', message);
+
+      // Exibe o erro no terminal/console do React Native
+      console.error("ERRO COMPLETO:", JSON.stringify(error, null, 2));
+
+      // Se for um erro do Axios, o servidor retornou um status (4xx/5xx)
+      if (error.response) {
+        console.log("Status:", error.response.status);
+        console.log("Dados da resposta:", error.response.data);
+        Alert.alert("Erro no Servidor", JSON.stringify(error.response.data));
+      } 
+      // A requisição foi feita mas não houve resposta (ex: erro de rede/IP incorreto)
+      else if (error.request) {
+        console.log("Sem resposta do servidor. Verifique o IP/URL.");
+        Alert.alert("Erro de Rede", "Não foi possível conectar ao servidor.");
+      } 
+      // Erro na configuração do código
+      else {
+        console.log("Mensagem de erro:", error.message);
+        Alert.alert("Erro", error.message);
+      }
     } finally {
-      setIsUpdatingPassword(false);
+      setIsUpdatingProfile(false);
     }
   };
 
