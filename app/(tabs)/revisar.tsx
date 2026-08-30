@@ -1,6 +1,17 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { getTodayReviews, ReviewItemResponse } from '../services/reviewService';
 
-// 🎨 Centralização de Cores (Tema Escuro)
 const COLORS = {
   background: '#17231d',
   surface: '#17231d',
@@ -13,79 +24,128 @@ const COLORS = {
   badgeWarning: '#e3aa39',
 };
 
-const hoje = new Date();
-const dia = hoje.getDate();
-const ano = hoje.getFullYear();
-const mesLiteral = hoje.toLocaleString('pt-BR', { month: 'long' });
-const diaDaSemana = hoje.toLocaleString('pt-BR', { weekday: 'long' });
+export default function RevisarScreen() {
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState<ReviewItemResponse[]>([]);
+  const [totalPending, setTotalPending] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-export default function Index() {
-  const progress = 0;
+  const hoje = new Date();
+  const dia = hoje.getDate();
+  const ano = hoje.getFullYear();
+  const mesLiteral = hoje.toLocaleString('pt-BR', { month: 'long' });
+  const diaDaSemana = hoje.toLocaleString('pt-BR', { weekday: 'long' });
 
-  const reviews = [
-    { id: '1', title: 'asdfa', subject: 'Arquitetura de sistemas', interval: 'D+1' },
-    { id: '2', title: 'asdfa', subject: 'Arquitetura de sistemas', interval: 'D+7' },
-    { id: '3', title: 'fasdfasdfa', subject: 'Arquitetura de sistemasfa', interval: 'D+1' },
-    { id: '4', title: 'fasdfasdfa', subject: 'Arquitetura de sistemasfa', interval: 'D+1' },
-    { id: '5', title: 'fasdfasdfa', subject: 'Arquitetura de sistemasfa', interval: 'D+1' },
-    { id: '6', title: 'fasdfasdfa', subject: 'Arquitetura de sistemasfa', interval: 'D+1' },
-    { id: '7', title: 'fasdfasdfa', subject: 'Arquitetura de sistemasfa', interval: 'D+1' },
-    { id: '8', title: 'fasdfasdfa', subject: 'Arquitetura de sistemasfa', interval: 'D+1' },
-  ];
+  const fetchReviews = async () => {
+    if (!user?.userId) return;
+
+    try {
+      const data = await getTodayReviews(user.userId);
+      setReviews(data.items || []);
+      setTotalPending(data.total_pending || 0);
+    } catch (error) {
+      console.error('Erro ao buscar revisões de hoje:', error);
+      setReviews([]);
+      setTotalPending(0);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsLoading(true);
+      fetchReviews();
+    }, [user?.userId])
+  );
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchReviews();
+  };
 
   return (
     <View style={styles.container}>
-      {/* Cabeçalho */}
-      <Text style={styles.dateText}>
-        {diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1)}, {dia} de {mesLiteral} de {ano}
-      </Text>
-      <Text style={styles.title}>Sua revisão de hoje</Text>
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={COLORS.brand}
+          />
+        }
+      >
+        <Text style={styles.dateText}>
+          {diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1)}, {dia} de{' '}
+          {mesLiteral} de {ano}
+        </Text>
+        <Text style={styles.title}>Sua revisão de hoje</Text>
 
-      {/* Progresso */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.subtitle}>0 de 3 concluídas</Text>
-          <Text style={styles.subtitle}>{progress}%</Text>
+        <View style={styles.progressContainer}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.subtitle}>
+              {totalPending} {totalPending === 1 ? 'pendente' : 'pendentes'}
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.progressBarTrack}>
-          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
-        </View>
-      </View>
-
-      {/* Lista de Cards */}
-      <ScrollView style={styles.reviewList}>
-        {reviews.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.reviewCard} activeOpacity={0.7}>
-            <View style={styles.dot} />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardSubject}>{item.subject}</Text>
-            </View>
-            <Text style={styles.cardInterval}>{item.interval}</Text>
-          </TouchableOpacity>
-        ))}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.brand} />
+          </View>
+        ) : reviews.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhuma revisão pendente para hoje! 🎉</Text>
+          </View>
+        ) : (
+          <View style={styles.reviewList}>
+            {reviews.map((item) => (
+              <TouchableOpacity
+                key={item.reviewId}
+                style={styles.reviewCard}
+                activeOpacity={0.7}
+              >
+                <View style={styles.dot} />
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{item.triggerTitle}</Text>
+                  <Text style={styles.cardSubject}>{item.subject}</Text>
+                </View>
+                <Text style={styles.cardInterval}>D+{item.intervalDays}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
-      {/* Ação */}
-      <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
-        <Text style={styles.primaryButtonText}>Começar revisão</Text>
-      </TouchableOpacity>
+      {reviews.length > 0 && (
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+            <Text style={styles.primaryButtonText}>Começar revisão</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // 1. Estrutura Principal
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 24,
   },
-
-  // 2. Tipografia
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 12,
+    paddingHorizontal: 18,
+    paddingBottom: 20,
+  },
   dateText: {
     color: COLORS.textMuted,
     fontSize: 13,
@@ -96,37 +156,32 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  subtitle: {
-    color: COLORS.textMuted,
-    fontSize: 13,
-  },
-
-  // 3. Progresso
   progressContainer: {
     width: '100%',
     marginTop: 16,
-    marginBottom: 23,
+    marginBottom: 20,
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
-  progressBarTrack: {
-    height: 7,
-    width: '100%',
-    backgroundColor: COLORS.progressTrack,
-    borderRadius: 99,
-    overflow: 'hidden',
+  subtitle: {
+    color: COLORS.textMuted,
+    fontSize: 13,
   },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: COLORS.brand,
-    borderRadius: 99,
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
   },
-
-  // 4. Lista e Cards
+  emptyContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: COLORS.textMuted,
+    fontSize: 15,
+  },
   reviewList: {
     gap: 10,
   },
@@ -163,14 +218,18 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 13,
   },
-
-  // 5. Botões
+  footer: {
+    paddingHorizontal: 18,
+    paddingBottom: 16,
+    paddingTop: 10,
+    backgroundColor: COLORS.background,
+  },
   primaryButton: {
     backgroundColor: COLORS.brand,
     borderRadius: 14,
-    paddingVertical: 14,
+    height: 48,
     alignItems: 'center',
-    marginTop: 22,
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: COLORS.brandText,

@@ -1,5 +1,7 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -7,8 +9,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { createTrigger } from '../services/triggerService';
+
 
 const COLORS = {
   background: '#17231d',
@@ -28,6 +33,70 @@ export default function NovoGatilhoScreen() {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [activeInput, setActiveInput] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const handleSaveTrigger = async () => {
+    if (!subject.trim() || !title.trim()) {
+      Alert.alert('Campos obrigatórios', 'Por favor, preencha a matéria e a palavra-gatilho.');
+      return;
+    }
+
+    if (!user?.userId) {
+      Alert.alert('Erro', 'Sessão inválida. Faça login novamente.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await createTrigger({
+        clientId: user.userId,
+        subject,
+        title,
+        notes,
+      });
+
+      Alert.alert('Sucesso', 'Gatilho salvo e revisões agendadas!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setSubject('');
+            setTitle('');
+            setNotes('');
+            router.navigate('/(tabs)/revisar');
+          },
+        },
+      ]);
+    } catch (error: any) {
+            const message = error?.response?.data?.message || 'Erro ao atualizar senha.';
+            Alert.alert('Erro', message);
+      
+            // Exibe o erro no terminal/console do React Native
+            console.error("ERRO COMPLETO:", JSON.stringify(error, null, 2));
+      
+            // Se for um erro do Axios, o servidor retornou um status (4xx/5xx)
+            if (error.response) {
+              console.log("Status:", error.response.status);
+              console.log("Dados da resposta:", error.response.data);
+              Alert.alert("Erro no Servidor", JSON.stringify(error.response.data));
+            } 
+            // A requisição foi feita mas não houve resposta (ex: erro de rede/IP incorreto)
+            else if (error.request) {
+              console.log("Sem resposta do servidor. Verifique o IP/URL.");
+              Alert.alert("Erro de Rede", "Não foi possível conectar ao servidor.");
+            } 
+            // Erro na configuração do código
+            else {
+              console.log("Mensagem de erro:", error.message);
+              Alert.alert("Erro", error.message);
+            }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -104,7 +173,11 @@ export default function NovoGatilhoScreen() {
         </View>
 
         {/* Botão posicionado logo abaixo do formulário */}
-        <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          activeOpacity={0.8}
+          onPress={handleSaveTrigger}
+          disabled={isLoading}>
           <Text style={styles.primaryButtonText}>Salvar e agendar revisões</Text>
         </TouchableOpacity>
       </ScrollView>
